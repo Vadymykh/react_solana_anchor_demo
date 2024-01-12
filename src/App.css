@@ -48,6 +48,11 @@ button:hover {
   background-color: rgb(104, 53, 224);
 }
 
+button:disabled {
+  cursor: no-drop;
+  background-color: #a4a4a4;
+}
+
 input {
   font-family: 'Roboto', sans-serif;
   color: #333;
@@ -76,4 +81,10 @@ input {
   display: flex;
   align-items: center;
   gap: 20px;
+}
+
+.two-columns-container {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }

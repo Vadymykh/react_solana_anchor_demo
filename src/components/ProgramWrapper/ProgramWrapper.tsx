@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react";
 import "./ProgramWrapper.css";
 import ToolTip from "../Tooltip/ToolTip";
+import { accountLink } from "../../solana/helpers";
 
 type Props = {
   children: ReactElement | ReactElement[],
@@ -20,17 +21,11 @@ const ProgramWrapper: React.FC<Props> = (
     <div className="programWrapper">
       <h2>{title}</h2>
       <div style={{ position: 'relative' }}>
-        Program ID: <a
-          href={`https://solscan.io/account/${programId}?cluster=devnet`}
-          target="_blank"
-        >{programId}</a>
+        Program ID: {accountLink(programId)}
         <ToolTip text="Program account, that executes transaction" />
       </div>
       {programAccount && <div>
-        Data Account: <a
-          href={`https://solscan.io/account/${programAccount}?cluster=devnet`}
-          target="_blank"
-        >{programAccount}</a>
+        Data Account: {accountLink(programAccount)}
         <ToolTip text="Account, that stores data" />
       </div>}
       <div className="programDescription">Description: {description}</div>

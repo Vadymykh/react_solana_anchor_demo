@@ -4,6 +4,7 @@ import { Keypair, LAMPORTS_PER_SOL, SystemProgram, Transaction } from "@solana/w
 import * as buffer from "buffer";
 import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { accountLink } from "../../../solana/helpers";
 
 
 window.Buffer = buffer.Buffer;
@@ -59,10 +60,7 @@ const TokenSPL: React.FC<Props> = () => {
       </p>
       <p>
         Receiver: {receiver
-          ? <a
-            href={`https://solscan.io/account/${receiver}?cluster=devnet`}
-            target="_blank"
-          >{receiver}</a>
+          ? accountLink(receiver)
           : <span className="text-value">Send SOL first</span>}
         <br />
         Transaction signature: {signatureHash

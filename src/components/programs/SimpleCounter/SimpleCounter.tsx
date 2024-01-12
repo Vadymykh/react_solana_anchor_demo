@@ -38,7 +38,7 @@ const SimpleCounter: React.FC<Props> = () => {
         .accounts({ counterData: programAccount })
         .rpc();
 
-      await confirmTransaction(provider, tx);
+      await confirmTransaction(provider.connection, tx);
 
       // fetch updated data from blockchain
       const account = await program.account.simpleCounterData.fetch(programAccount);
@@ -55,7 +55,7 @@ const SimpleCounter: React.FC<Props> = () => {
         .accounts({ counterData: programAccount })
         .rpc();
 
-      await confirmTransaction(provider, tx);
+      await confirmTransaction(provider.connection, tx);
 
       // fetch updated data from blockchain
       const account = await program.account.simpleCounterData.fetch(programAccount);
