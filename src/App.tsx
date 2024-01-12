@@ -1,9 +1,11 @@
 import React, { ReactNode } from 'react';
 import './App.css';
-import SimpleCounter from './components/SimpleCounter/SimpleCounter';
 import { ClusterProvider } from './cluster/cluster-data-access';
 import { SolanaProvider } from './solana/solana-provider';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import SimpleCounter from './components/programs/SimpleCounter/SimpleCounter';
+import TokenSPL from './components/programs/TokenSPL/TokenSPL';
+import SendSol from './components/programs/SendSol/SendSol';
 
 
 function App() {
@@ -14,7 +16,9 @@ function App() {
           Testing Solana Anchor smart contracts. <WalletMultiButton />
         </h1>
         <div className='programContainer'>
+          <SendSol />
           <SimpleCounter />
+          <TokenSPL />
         </div>
       </div>
     </Context>

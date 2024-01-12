@@ -1,15 +1,18 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import "./ProgramWrapper.css";
 import ToolTip from "../Tooltip/ToolTip";
 
 type Props = {
-  children: string | JSX.Element | JSX.Element[],
+  children: ReactElement | ReactElement[],
   title: string,
   programId: string,
-  programAccount: string,
+  programAccount?: string,
   description: string | JSX.Element,
 };
 
+/**
+ * Just explanational info wrapper. No blockchain functionality
+ */
 const ProgramWrapper: React.FC<Props> = (
   { children, programId, programAccount, description, title }
 ) => {
@@ -23,13 +26,13 @@ const ProgramWrapper: React.FC<Props> = (
         >{programId}</a>
         <ToolTip text="Program account, that executes transaction" />
       </div>
-      <div>
+      {programAccount && <div>
         Data Account: <a
           href={`https://solscan.io/account/${programAccount}?cluster=devnet`}
           target="_blank"
         >{programAccount}</a>
         <ToolTip text="Account, that stores data" />
-      </div>
+      </div>}
       <div className="programDescription">Description: {description}</div>
       <div>
         {children}
