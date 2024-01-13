@@ -45,14 +45,11 @@ const TokenSPL = () => {
 
   // Updating global token data
   useEffect(() => {
-    console.log("Updating global token data");
-    
     if (mint) getMint(connection, mint).then(_mintInfo => { setMintInfo(_mintInfo) });
   }, [wallet, mint, associatedAccount]);
 
   // Updating Associated user account address
   useEffect(() => {
-    console.log("Updating Associated user account address");
     if (!mint || !wallet.publicKey) return;
 
     const associatedToken = getAssociatedTokenAddressSync(
@@ -124,8 +121,12 @@ const TokenSPL = () => {
           {
             mintInfo && <>
               <div>Decimals: {mintInfo.decimals}</div>
-              <div>Supply: {toDecimalsAmount(mintInfo.supply, mintInfo)}</div>
-              <div>Mint Authority: {accountLink(mintInfo.mintAuthority)}</div>
+              <div>Supply: {toDecimalsAmount(mintInfo.supply, mintInfo.decimals)}<ToolTip 
+                text="Total token supply"
+              /></div>
+              <div>Mint Authority: {accountLink(mintInfo.mintAuthority)}<ToolTip 
+                text="Account which can mint tokens"
+              /></div>
               <div>Freeze Authority: {accountLink(mintInfo.freezeAuthority)}</div>
             </>
           }
@@ -139,7 +140,7 @@ const TokenSPL = () => {
           </div>
           {mint && !associatedAccount && <p><button onClick={createAccount}>Create associated user account</button></p>}
           {associatedAccount && 
-            <div>Balance: {toDecimalsAmount(associatedAccount.amount, mintInfo)}</div>
+            <div>Balance: {toDecimalsAmount(associatedAccount.amount, mintInfo?.decimals)}</div>
           }
         </div>
       </div>

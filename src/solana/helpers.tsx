@@ -24,9 +24,9 @@ export function accountLink(account: PublicKey | string | null | undefined) {
   >{accountString}</a>
 }
 
-export function toDecimalsAmount(amount: bigint, mintInfo: Mint | undefined) {
+export function toDecimalsAmount(amount: bigint, decimals: number | undefined) {
   return <span className="text-value">{
-    mintInfo ? Number(amount) / 10**mintInfo.decimals
+    decimals ? Number(amount) / 10**decimals
     : "none"
   }</span>;
 }
