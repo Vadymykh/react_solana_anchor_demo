@@ -24,7 +24,10 @@ export function accountLink(account: PublicKey | string | null | undefined) {
   >{accountString}</a>
 }
 
-export function toDecimalsAmount(amount: bigint, decimals: number | undefined) {
+export function toDecimalsAmount(
+  amount: bigint | string, 
+  decimals: number | undefined
+) {
   return <span className="text-value">{
     decimals ? Number(amount) / 10**decimals
     : "none"

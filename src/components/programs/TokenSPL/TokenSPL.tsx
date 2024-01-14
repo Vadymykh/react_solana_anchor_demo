@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import ProgramWrapper from "../../ProgramWrapper/ProgramWrapper";
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, TokenAccountBalancePair } from "@solana/web3.js";
 import * as buffer from "buffer";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   Account,
   Mint,
-  TOKEN_PROGRAM_ID, getAccount, getAssociatedTokenAddressSync, getMint,
+  TOKEN_PROGRAM_ID,
+  getAccount,
+  getAssociatedTokenAddressSync,
+  getMint,
 } from "@solana/spl-token";
-import { createMint, getOrCreateAssociatedTokenAccount, executeMint } from "./tokenSplBrowserHelpers";
+import { createMint, getOrCreateAssociatedTokenAccount, executeMint, executeTransfer } from "./tokenSplBrowserHelpers";
 import ToolTip from "../../Tooltip/ToolTip";
 import { loadTokenAccount, saveTokenAccount } from "./localStorageHelpers";
 import { accountLink, toDecimalsAmount } from "../../../solana/helpers";
+import LargestAccounts from "./LargestAccounts";
 
 window.Buffer = buffer.Buffer;
 
 
 const TokenSPL = () => {
+  // @solana/wallet-adapter-react better works with non-Anchor programs, but you can research
   const { connection } = useConnection();
   const wallet = useWallet();
 
@@ -27,6 +32,8 @@ const TokenSPL = () => {
   const [associatedAccount, setAssociatedAccount] = useState<Account | undefined>(undefined);
   const [mintAmount, setMintAmount] = useState(0);
   const [transferAmount, setTransferAmount] = useState(0);
+  const [tokensReceiverAddress, setTokensReceiverAddress] = useState("");
+  const [largestAccounts, setLargestAccounts] = useState<TokenAccountBalancePair[]>([]);
 
   // useEffect(() => {
   //   if (!wallet || !wallet.publicKey) return;
@@ -42,6 +49,7 @@ const TokenSPL = () => {
   //     });
   //   });
   // }, [wallet, mint]);
+
 
   // Updating global token data
   useEffect(() => {
@@ -105,6 +113,30 @@ const TokenSPL = () => {
     }
   }
 
+  async function transferTokens() {
+    if (!mint || !wallet || !wallet.publicKey || !transferAmount) return;
+
+    const toTransfer = Math.round(transferAmount * 1e9);
+
+    try {
+      const receiver = new PublicKey(tokensReceiverAddress);
+      await executeTransfer(connection, wallet, mint, receiver, toTransfer);
+      // update user account data
+      setAssociatedAccount(
+        await getAccount(connection, associatedAccount!.address, undefined, TOKEN_PROGRAM_ID)
+      );
+      // update token holders data
+      connection.getTokenLargestAccounts(mint)
+        .then((data) => { setLargestAccounts(data.value) });
+    } catch (err) {
+      console.log("Transaction error: ", err);
+    }
+  }
+
+  async function generateRandomReceiver() {
+    setTokensReceiverAddress((Keypair.generate()).publicKey.toBase58());
+  }
+
   return (
     <ProgramWrapper
       title={"Token SPL (Solana Program Library)"}
@@ -121,10 +153,10 @@ const TokenSPL = () => {
           {
             mintInfo && <>
               <div>Decimals: {mintInfo.decimals}</div>
-              <div>Supply: {toDecimalsAmount(mintInfo.supply, mintInfo.decimals)}<ToolTip 
+              <div>Supply: {toDecimalsAmount(mintInfo.supply, mintInfo.decimals)}<ToolTip
                 text="Total token supply"
               /></div>
-              <div>Mint Authority: {accountLink(mintInfo.mintAuthority)}<ToolTip 
+              <div>Mint Authority: {accountLink(mintInfo.mintAuthority)}<ToolTip
                 text="Account which can mint tokens"
               /></div>
               <div>Freeze Authority: {accountLink(mintInfo.freezeAuthority)}</div>
@@ -139,7 +171,7 @@ const TokenSPL = () => {
           but in this example I wanted to show that additional instruction is required." />
           </div>
           {mint && !associatedAccount && <p><button onClick={createAccount}>Create associated user account</button></p>}
-          {associatedAccount && 
+          {associatedAccount &&
             <div>Balance: {toDecimalsAmount(associatedAccount.amount, mintInfo?.decimals)}</div>
           }
         </div>
@@ -174,13 +206,25 @@ const TokenSPL = () => {
           placeholder="mint amount"
           onChange={e => setMintAmount(Number(e.target.value))}
         />
+      </div>
+      <div className="horizontal-container" style={{ flexWrap: 'wrap' }}>
+        <button disabled={!mint} onClick={transferTokens}>Transfer tokens</button>
         <input
           placeholder="transfer amount"
           onChange={e => setTransferAmount(Number(e.target.value))}
         />
-        {/* <button onClick={setCounterValue}>Set counter value</button>
-        <input value={value} onChange={(e) => setValue(Number(e.target.value))} /> */}
+        <input
+          placeholder="receiver wallet"
+          value={tokensReceiverAddress}
+          onChange={e => setTokensReceiverAddress(e.target.value)}
+        />
+        <button onClick={generateRandomReceiver}>Generate random receiver</button>
       </div>
+      {mint && <LargestAccounts
+        mint={mint}
+        largestAccounts={largestAccounts}
+        setLargestAccounts={setLargestAccounts}
+      />}
     </ProgramWrapper>
   );
 }

@@ -15,6 +15,7 @@ import {
   TokenInvalidMintError,
   TokenInvalidOwnerError,
   createMintToInstruction,
+  createTransferInstruction,
 } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import {
@@ -181,5 +182,66 @@ export async function executeMint(
   // sending instructions to
   const signature = await wallet.sendTransaction(transaction, connection);
   await confirmTransaction(connection, signature);
+}
+
+
+/**
+ * Based on @solana/spl-token functions
+ */
+export async function executeTransfer(
+  connection: Connection,
+  wallet: WalletContextState,
+  mint: PublicKey,
+  receiver: PublicKey,
+  amount: number | bigint,
+) {
+  if (!wallet || !wallet.publicKey) throw new WalletNotConnectedError();
+  const source = getAssociatedTokenAddressSync(
+    mint, wallet.publicKey, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+  );
+  // In this function we derive associated token account address from 
+  // receivers wallet. But if you know associated token account address
+  // already and you want to transfer tokens to it, you won't care about the owner
+  const destination = getAssociatedTokenAddressSync(
+    mint, receiver, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+  );
+
+  const transaction = new Transaction();
+
+  // check if account exists
+  try {
+    await getAccount(connection, destination, undefined, TOKEN_PROGRAM_ID);
+  } catch (error: unknown) {
+    if (error instanceof TokenAccountNotFoundError || error instanceof TokenInvalidAccountOwnerError) {
+      // if not - we'll create account
+      transaction.add(
+        createAssociatedTokenAccountInstruction(
+          wallet.publicKey,
+          destination,
+          receiver,
+          mint,
+          TOKEN_PROGRAM_ID,
+          ASSOCIATED_TOKEN_PROGRAM_ID
+        )
+      );
+      console.log(`Will create account: ${destination.toBase58()}`);
+    } else {
+      throw error;
+    }
+  }
+
+  transaction.add(
+    createTransferInstruction(
+      source, destination, wallet.publicKey, amount, [wallet.publicKey], TOKEN_PROGRAM_ID
+    )
+  );
+
+  // sending instructions to
+  const signature = await wallet.sendTransaction(transaction, connection);
+  await confirmTransaction(connection, signature);
+
+  console.log(`Transferred: from ${wallet.publicKey.toBase58()} (account: ${source.toBase58()}) to ${
+    receiver.toBase58()
+  } (account: ${destination.toBase58()}). Amount: ${amount}`);
 }
 

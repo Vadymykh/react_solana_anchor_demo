@@ -4,7 +4,7 @@ import ToolTip from "../Tooltip/ToolTip";
 import { accountLink } from "../../solana/helpers";
 
 type Props = {
-  children: ReactElement | ReactElement[],
+  children: ReactElement | (ReactElement | undefined)[],
   title: string,
   programId: string,
   programAccount?: string,
