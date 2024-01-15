@@ -253,17 +253,17 @@ export async function executeBurn(
   connection: Connection,
   wallet: WalletContextState,
   mint: PublicKey,
-  account: PublicKey,
-  owner: PublicKey,
+  associatedAccount: PublicKey,
+  tokensOwnerWallet: PublicKey,
   amount: bigint,
 ) {
   if (!wallet || !wallet.publicKey) throw new WalletNotConnectedError();
 
   const transaction = new Transaction().add(
     createBurnInstruction(
-      account,
+      associatedAccount,
       mint,
-      owner,
+      tokensOwnerWallet,
       amount,
       [],
       TOKEN_PROGRAM_ID
@@ -274,7 +274,7 @@ export async function executeBurn(
   const signature = await wallet.sendTransaction(transaction, connection);
   await confirmTransaction(connection, signature);
 
-  console.log(`Burned: account: ${account.toBase58()} Amount: ${amount}`);
+  console.log(`Burned: account: ${associatedAccount.toBase58()} Amount: ${amount}`);
 }
 
 /**
