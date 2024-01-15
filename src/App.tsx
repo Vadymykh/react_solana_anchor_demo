@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import './App.css';
+import { AppStyled } from './App.styled';
 import { ClusterProvider } from './cluster/cluster-data-access';
 import { SolanaProvider } from './solana/solana-provider';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -11,7 +11,7 @@ import SendSol from './components/programs/SendSol/SendSol';
 function App() {
   return (
     <Context>
-      <div className="App">
+      <AppStyled>
         <h1>
           Testing Solana Anchor smart contracts. <WalletMultiButton />
         </h1>
@@ -20,7 +20,7 @@ function App() {
           <SimpleCounter />
           <TokenSPL />
         </div>
-      </div>
+      </AppStyled>
     </Context>
   );
 }

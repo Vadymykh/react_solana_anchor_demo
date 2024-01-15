@@ -16,6 +16,8 @@ import {
   TokenInvalidOwnerError,
   createMintToInstruction,
   createTransferInstruction,
+  unpackAccount,
+  createBurnInstruction,
 } from "@solana/spl-token";
 import { WalletContextState } from "@solana/wallet-adapter-react";
 import {
@@ -108,7 +110,6 @@ export async function getOrCreateAssociatedTokenAccount(
     programId,
     associatedTokenProgramId
   );
-  console.log(associatedToken.toBase58());
 
   // This is the optimal logic, considering TX fee, client-side computation, RPC roundtrips and guaranteed idempotent.
   // Sadly we can't do this atomically.
@@ -240,8 +241,68 @@ export async function executeTransfer(
   const signature = await wallet.sendTransaction(transaction, connection);
   await confirmTransaction(connection, signature);
 
-  console.log(`Transferred: from ${wallet.publicKey.toBase58()} (account: ${source.toBase58()}) to ${
-    receiver.toBase58()
-  } (account: ${destination.toBase58()}). Amount: ${amount}`);
+  console.log(`Transferred: from ${wallet.publicKey.toBase58()} (account: ${source.toBase58()}) to ${receiver.toBase58()
+    } (account: ${destination.toBase58()}). Amount: ${amount}`);
 }
 
+
+/**
+ * Based on @solana/spl-token function
+ */
+export async function executeBurn(
+  connection: Connection,
+  wallet: WalletContextState,
+  mint: PublicKey,
+  account: PublicKey,
+  owner: PublicKey,
+  amount: bigint,
+) {
+  if (!wallet || !wallet.publicKey) throw new WalletNotConnectedError();
+
+  const transaction = new Transaction().add(
+    createBurnInstruction(
+      account,
+      mint,
+      owner,
+      amount,
+      [],
+      TOKEN_PROGRAM_ID
+    )
+  );
+
+  // sending instructions to
+  const signature = await wallet.sendTransaction(transaction, connection);
+  await confirmTransaction(connection, signature);
+
+  console.log(`Burned: account: ${account.toBase58()} Amount: ${amount}`);
+}
+
+/**
+ * Gets largest token accounts and parses data
+ */
+export type TokenAccountData = {
+  accountOwner: PublicKey,
+  associatedAccount: PublicKey,
+  amount: bigint,
+};
+export async function getLargestParsedAccounts(
+  connection: Connection,
+  mint: PublicKey,
+): Promise<TokenAccountData[]> {
+  const accounts = (await connection.getTokenLargestAccounts(mint))
+    .value.map(el => el.address);
+
+  return (await connection.getMultipleAccountsInfo(accounts))
+    .map((account, index) => {
+      const parsedData = unpackAccount(
+        mint,
+        account,
+      );
+
+      return {
+        accountOwner: parsedData.owner,
+        associatedAccount: accounts[index],
+        amount: parsedData.amount,
+      }
+    });
+}

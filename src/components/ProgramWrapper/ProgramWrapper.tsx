@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import "./ProgramWrapper.css";
+import { ProgramWrapperStyled } from "./ProgramWrapper.styled";
 import ToolTip from "../Tooltip/ToolTip";
 import { accountLink } from "../../solana/helpers";
 
@@ -18,7 +18,7 @@ const ProgramWrapper: React.FC<Props> = (
   { children, programId, programAccount, description, title }
 ) => {
   return (
-    <div className="programWrapper">
+    <ProgramWrapperStyled>
       <h2>{title}</h2>
       <div style={{ position: 'relative' }}>
         Program ID: {accountLink(programId)}
@@ -32,7 +32,7 @@ const ProgramWrapper: React.FC<Props> = (
       <div>
         {children}
       </div>
-    </div>
+    </ProgramWrapperStyled>
   );
 }
 

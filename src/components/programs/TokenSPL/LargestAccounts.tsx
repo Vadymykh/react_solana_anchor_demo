@@ -1,43 +1,61 @@
-import { PublicKey, TokenAccountBalancePair } from '@solana/web3.js'
-import { FC, useEffect, useState } from 'react'
+import { PublicKey } from '@solana/web3.js'
+import { FC, useEffect } from 'react'
 import { accountLink, toDecimalsAmount } from '../../../solana/helpers'
-import { useConnection } from '@solana/wallet-adapter-react';
-import './LargestAccounts.css';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import ToolTip from '../../Tooltip/ToolTip';
+import { Account, Mint } from '@solana/spl-token';
+import { TokenAccountData, executeBurn, getLargestParsedAccounts } from './tokenSplBrowserHelpers';
+import { LargestAccountsStyled } from './LargestAccounts.styled';
 
 interface LargestAccountsProps {
-  mint: PublicKey,
-  largestAccounts: TokenAccountBalancePair[],
-  setLargestAccounts: React.Dispatch<React.SetStateAction<TokenAccountBalancePair[]>>
+  mintInfo: Mint,
+  largestAccounts: TokenAccountData[],
+  setLargestAccounts: React.Dispatch<React.SetStateAction<TokenAccountData[]>>
+  setTokensReceiverAddress: React.Dispatch<React.SetStateAction<string>>
 }
 
 const LargestAccounts: FC<LargestAccountsProps> = ({
-  mint,
+  mintInfo,
   largestAccounts,
-  setLargestAccounts: setLargestAccountss
+  setLargestAccounts,
+  setTokensReceiverAddress,
 }) => {
   const { connection } = useConnection();
+  const wallet = useWallet();
+  // const [parsedAccounts, setParsedAccounts] = useState<>([]);
 
   // update largest accounts
   useEffect(() => {
-    mint && connection.getTokenLargestAccounts(mint)
+    mintInfo && getLargestParsedAccounts(connection, mintInfo.address)
       .then((data) => {
-        setLargestAccountss(data.value);
+        setLargestAccounts(data)
       });
-  }, [mint]);
+  }, [mintInfo]);
 
-  return <div className="balance-table">
-    <h3> Associated accounts
-      <ToolTip text="I couldn't find a way to get wallet address for associated account :(" />
-    </h3>
-    <h3> Balance </h3>
-    {largestAccounts.map(account => (
-      <>
-        <div>{accountLink(account.address)}</div>
-        <div>{toDecimalsAmount(account.amount, account.decimals)} tokens</div>
-      </>
+  return <LargestAccountsStyled>
+    {largestAccounts.map((account) => (
+      <div key={account.accountOwner.toBase58()} className="account">
+        <div>
+          <div>Wallet
+            <ToolTip text='User wallet address' />
+            <button
+              onClick={() => setTokensReceiverAddress(account.accountOwner.toBase58())}
+              className='small-button'
+            >Set as receiver</button>
+          </div>
+          <div>{accountLink(account.accountOwner)}</div>
+          <div>
+            Associated account
+            <ToolTip text='Associated with wallet token account, that holds user token data' />
+          </div>
+          <div>{accountLink(account.associatedAccount)}</div>
+        </div>
+        <div>
+          {toDecimalsAmount(account.amount, mintInfo.decimals)} tokens
+        </div>
+      </div>
     ))}
-  </div>
+  </LargestAccountsStyled>
 }
 
 export default LargestAccounts

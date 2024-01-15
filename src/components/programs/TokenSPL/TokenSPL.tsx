@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProgramWrapper from "../../ProgramWrapper/ProgramWrapper";
-import { Keypair, PublicKey, TokenAccountBalancePair } from "@solana/web3.js";
+import { Keypair, PublicKey, } from "@solana/web3.js";
 import * as buffer from "buffer";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -12,7 +12,14 @@ import {
   getAssociatedTokenAddressSync,
   getMint,
 } from "@solana/spl-token";
-import { createMint, getOrCreateAssociatedTokenAccount, executeMint, executeTransfer } from "./tokenSplBrowserHelpers";
+import { 
+  createMint, 
+  getOrCreateAssociatedTokenAccount, 
+  executeMint, 
+  executeTransfer, 
+  getLargestParsedAccounts, 
+  TokenAccountData
+ } from "./tokenSplBrowserHelpers";
 import ToolTip from "../../Tooltip/ToolTip";
 import { loadTokenAccount, saveTokenAccount } from "./localStorageHelpers";
 import { accountLink, toDecimalsAmount } from "../../../solana/helpers";
@@ -33,23 +40,7 @@ const TokenSPL = () => {
   const [mintAmount, setMintAmount] = useState(0);
   const [transferAmount, setTransferAmount] = useState(0);
   const [tokensReceiverAddress, setTokensReceiverAddress] = useState("");
-  const [largestAccounts, setLargestAccounts] = useState<TokenAccountBalancePair[]>([]);
-
-  // useEffect(() => {
-  //   if (!wallet || !wallet.publicKey) return;
-
-  //   connection.getTokenAccountsByOwner(
-  //     wallet.publicKey,
-  //     { programId: TOKEN_PROGRAM_ID }
-  //   ).then((data) => {
-  //     console.log(data.value);
-  //     data.value.forEach(account => {
-  //       console.log(account.pubkey.toBase58());
-  //       console.log(account.account.owner.toBase58());
-  //     });
-  //   });
-  // }, [wallet, mint]);
-
+  const [largestAccounts, setLargestAccounts] = useState<TokenAccountData[]>([]);
 
   // Updating global token data
   useEffect(() => {
@@ -126,8 +117,8 @@ const TokenSPL = () => {
         await getAccount(connection, associatedAccount!.address, undefined, TOKEN_PROGRAM_ID)
       );
       // update token holders data
-      connection.getTokenLargestAccounts(mint)
-        .then((data) => { setLargestAccounts(data.value) });
+      getLargestParsedAccounts(connection, mint)
+        .then((data) => setLargestAccounts(data));
     } catch (err) {
       console.log("Transaction error: ", err);
     }
@@ -210,20 +201,21 @@ const TokenSPL = () => {
       <div className="horizontal-container" style={{ flexWrap: 'wrap' }}>
         <button disabled={!mint} onClick={transferTokens}>Transfer tokens</button>
         <input
-          placeholder="transfer amount"
+          placeholder="amount"
           onChange={e => setTransferAmount(Number(e.target.value))}
         />
         <input
-          placeholder="receiver wallet"
+          placeholder="wallet"
           value={tokensReceiverAddress}
           onChange={e => setTokensReceiverAddress(e.target.value)}
         />
         <button onClick={generateRandomReceiver}>Generate random receiver</button>
       </div>
-      {mint && <LargestAccounts
-        mint={mint}
+      {mintInfo && <LargestAccounts
+        mintInfo={mintInfo}
         largestAccounts={largestAccounts}
         setLargestAccounts={setLargestAccounts}
+        setTokensReceiverAddress={setTokensReceiverAddress}
       />}
     </ProgramWrapper>
   );
