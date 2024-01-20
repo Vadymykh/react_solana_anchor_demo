@@ -6,6 +6,7 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import SimpleCounter from './components/programs/SimpleCounter/SimpleCounter';
 import TokenSPL from './components/programs/TokenSPL/TokenSPL';
 import SendSol from './components/programs/SendSol/SendSol';
+import CounterSetter from './components/programs/CouterSetter/CounterSetter';
 
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <div className='programContainer'>
           <SendSol />
           <SimpleCounter />
+          <CounterSetter />
           <TokenSPL />
         </div>
       </AppStyled>

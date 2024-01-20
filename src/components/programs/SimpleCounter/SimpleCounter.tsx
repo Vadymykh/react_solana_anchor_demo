@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ProgramWrapper from "../../ProgramWrapper/ProgramWrapper";
 import { IDL, SimpleCounter as SimpleCounterType } from "./simple_counter_idl";
-import { PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey } from "@solana/web3.js";
 import { useAnchorProvider } from "../../../solana/solana-provider";
-import { Program, BN } from "@coral-xyz/anchor";
+import { Program, BN, web3 } from "@coral-xyz/anchor";
 import * as buffer from "buffer";
 import { confirmTransaction } from "../../../solana/helpers";
 
@@ -30,6 +30,27 @@ const SimpleCounter: React.FC<Props> = () => {
         setCounter(accountData.data.toNumber())
       });
   }, []);
+
+  const initialize = async () => {
+    try {
+      const newAccount = Keypair.generate();
+      /* interact with the program via rpc */
+      const tx = await program.methods.initialize()
+        .accounts({ 
+          counterData: newAccount.publicKey,
+          user: provider.wallet.publicKey,
+          systemProgram: web3.SystemProgram.programId,
+        })
+        .signers([newAccount])
+        .rpc();
+
+      await confirmTransaction(provider.connection, tx);
+      
+      console.log(`New data account created: ${newAccount.publicKey.toBase58()}`);
+    } catch (err) {
+      console.log("Transaction error: ", err);
+    }
+  }
 
   const increment = async () => {
     try {
@@ -78,6 +99,7 @@ const SimpleCounter: React.FC<Props> = () => {
     >
       <div className="text-info">Counter value: <span className="text-value">{counter}</span></div>
       <div className="horizontal-container">
+        {/* <button onClick={initialize}>Deploy new counter</button> */}
         <button onClick={increment}>Increment</button>
         <button onClick={setCounterValue}>Set counter value</button>
         <input value={value} onChange={(e) => setValue(Number(e.target.value))} />
