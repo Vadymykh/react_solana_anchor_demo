@@ -19,7 +19,7 @@ import {
   executeTransfer, 
   getLargestParsedAccounts, 
   TokenAccountData
- } from "./tokenSplBrowserHelpers";
+ } from "../../../scripts/tokenSplBrowserHelpers";
 import ToolTip from "../../Tooltip/ToolTip";
 import { loadTokenAccount, saveTokenAccount } from "./localStorageHelpers";
 import { accountLink, toDecimalsAmount } from "../../../solana/helpers";

@@ -27,10 +27,11 @@ import {
   Transaction,
   PublicKey,
   Commitment,
-  ConfirmOptions
+  ConfirmOptions,
+  TransactionInstruction
 } from "@solana/web3.js";
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';
-import { confirmTransaction } from "../../../solana/helpers";
+import { confirmTransaction } from "../solana/helpers";
 
 /**
  * I haven't found anything easier than manual transaction generation 
@@ -200,41 +201,23 @@ export async function executeTransfer(
   const source = getAssociatedTokenAddressSync(
     mint, wallet.publicKey, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
   );
-  // In this function we derive associated token account address from 
-  // receivers wallet. But if you know associated token account address
-  // already and you want to transfer tokens to it, you won't care about the owner
-  const destination = getAssociatedTokenAddressSync(
-    mint, receiver, false, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
-  );
 
   const transaction = new Transaction();
 
-  // check if account exists
-  try {
-    await getAccount(connection, destination, undefined, TOKEN_PROGRAM_ID);
-  } catch (error: unknown) {
-    if (error instanceof TokenAccountNotFoundError || error instanceof TokenInvalidAccountOwnerError) {
-      // if not - we'll create account
-      transaction.add(
-        createAssociatedTokenAccountInstruction(
-          wallet.publicKey,
-          destination,
-          receiver,
-          mint,
-          TOKEN_PROGRAM_ID,
-          ASSOCIATED_TOKEN_PROGRAM_ID
-        )
-      );
-      console.log(`Will create account: ${destination.toBase58()}`);
-    } else {
-      throw error;
-    }
-  }
+  // In this function we derive associated token account address from 
+  // receivers wallet. But if you know associated token account address
+  // already and you want to transfer tokens to it, you won't care about the owner
+  const {
+    tokenAccount: destination, instructions: createAccountInstructions,
+  } = await getTokenAccountAndOptionalAddInstruction(
+    connection, wallet.publicKey, mint, receiver
+  );
 
   transaction.add(
+    ...createAccountInstructions,
     createTransferInstruction(
       source, destination, wallet.publicKey, amount, [wallet.publicKey], TOKEN_PROGRAM_ID
-    )
+    ),
   );
 
   // sending instructions to
@@ -243,6 +226,54 @@ export async function executeTransfer(
 
   console.log(`Transferred: from ${wallet.publicKey.toBase58()} (account: ${source.toBase58()}) to ${receiver.toBase58()
     } (account: ${destination.toBase58()}). Amount: ${amount}`);
+}
+
+/**
+ * Gets account and if it's not created yet, generates instruction for creation
+ * @param connection Connection
+ * @param payer Who will pay for creation of account
+ * @param mint Token Mint address
+ * @param owner Account owner
+ */
+export async function getTokenAccountAndOptionalAddInstruction(
+  connection: Connection,
+  payer: PublicKey,
+  mint: PublicKey,
+  owner: PublicKey,
+) {
+  const instructions: TransactionInstruction[] = [];
+  const tokenAccount = getAssociatedTokenAddressSync(
+    mint, owner, true, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID
+  );
+
+  try {
+    await getAccount(connection, tokenAccount, undefined, TOKEN_PROGRAM_ID);
+  } catch (error: unknown) {
+    if (
+      error instanceof TokenAccountNotFoundError
+      || error instanceof TokenInvalidAccountOwnerError
+    ) {
+      instructions.push(
+        createAssociatedTokenAccountInstruction(
+          payer,
+          tokenAccount,
+          owner,
+          mint
+        )
+      );
+      console.log(`Will create account: ${
+        tokenAccount.toBase58()
+      } for ${
+        owner.toBase58()
+      } owner and ${
+        mint.toBase58()
+      } token`);
+    } else {
+      throw error;
+    }
+  }
+
+  return { tokenAccount, instructions };
 }
 
 

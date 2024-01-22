@@ -7,6 +7,7 @@ import SimpleCounter from './components/programs/SimpleCounter/SimpleCounter';
 import TokenSPL from './components/programs/TokenSPL/TokenSPL';
 import SendSol from './components/programs/SendSol/SendSol';
 import CounterSetter from './components/programs/CouterSetter/CounterSetter';
+import Farm from './components/programs/Farm/Farm';
 
 
 function App() {
@@ -17,10 +18,11 @@ function App() {
           Testing Solana Anchor smart contracts. <WalletMultiButton />
         </h1>
         <div className='programContainer'>
-          <SendSol />
+          {/* <SendSol />
           <SimpleCounter />
           <CounterSetter />
-          <TokenSPL />
+          <TokenSPL /> */}
+          <Farm />
         </div>
       </AppStyled>
     </Context>
