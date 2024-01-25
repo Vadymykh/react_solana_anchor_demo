@@ -1,19 +1,15 @@
 import {
   type Connection,
-  Keypair,
   SystemProgram,
-  Transaction,
   PublicKey,
-  Commitment,
-  ConfirmOptions,
   TransactionInstruction
 } from "@solana/web3.js";
 import { getTokenAccountAndOptionalAddInstruction } from "../../../scripts/tokenSplBrowserHelpers";
 import { BN, IdlAccounts, Program, utils } from "@coral-xyz/anchor";
-import { IDL as FarmIDL, Farm as FarmType } from "./idl/farm";
-import { IDL as TokenMinterIDL, TokenMinter as TokenMinterType } from "./idl/token_minter";
+import { Farm as FarmType } from "./idl/farm";
+import { TokenMinter as TokenMinterType } from "./idl/token_minter";
 import { minterPDA } from "./Farm";
-import { TOKEN_PROGRAM_ID, approve, createApproveInstruction } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, createApproveInstruction } from "@solana/spl-token";
 import { confirmTransaction } from "../../../solana/helpers";
 import { AnchorWallet } from "@solana/wallet-adapter-react";
 

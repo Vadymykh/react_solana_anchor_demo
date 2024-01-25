@@ -4,11 +4,10 @@ import { IDL as FarmIDL, Farm as FarmType } from "./idl/farm";
 import { IDL as TokenMinterIDL, TokenMinter as TokenMinterType } from "./idl/token_minter";
 import { PublicKey } from "@solana/web3.js";
 import { useAnchorProvider } from "../../../solana/solana-provider";
-import { Program, IdlAccounts, web3, BN, utils } from "@coral-xyz/anchor";
+import { Program, BN } from "@coral-xyz/anchor";
 import * as buffer from "buffer";
-import { accountLink, confirmTransaction, } from "../../../solana/helpers";
-import { TOKEN_PROGRAM_ID, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync, getMint } from "@solana/spl-token";
-import { getTokenAccountAndOptionalAddInstruction } from "../../../scripts/tokenSplBrowserHelpers";
+import { accountLink } from "../../../solana/helpers";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import {
   DepositDataType,
   FarmDataType,
@@ -24,7 +23,7 @@ type Props = {};
 
 const tokenMinterExecutableAddress = "H8ULdnCzWHR2mj8wkkbZNMHTXwBdwwFqpif5t1tpygT5";
 const farmExecutableAddress = "FcVrY6gNjH1tMp1h9QtzWYQKDJGtz5h2nZUkG4vqHBTy";
-const farmPdaAddress = "HAh1dt8voSHqQa7iYgzmdNXwYrPQKr9Eu7HxDcr1YuxE";
+const farmPdaAddress = "9Yuv9De9qUtsEnFEyogdjFKpCCUQ31fNRSfNjgSZvhou";
 const minterPdaAddress = "A5kTzRGSAXCAksZCzZL59jkFV1HtCYUoG5tWwjExP98G";
 const tokenMinterProgramID = new PublicKey(tokenMinterExecutableAddress);
 const farmExecutableProgramID = new PublicKey(farmExecutableAddress);
@@ -51,10 +50,16 @@ const Farm: React.FC<Props> = () => {
     [FarmIDL, farmExecutableProgramID, provider]
   );
 
-  function updateDeposit() {
+  async function updateDepositData() {
+    if (!wallet || !wallet.publicKey) return;
     const userDepositPDA = getUserDepositPDA(wallet, farmPDA, farmProgram);
-    farmProgram.account.depositData.fetch(userDepositPDA)
-      .then(_depositData => setDepositData(_depositData));
+    if (
+      !depositData                                        // if depositData was not fetched yet
+      && !await connection.getAccountInfo(userDepositPDA) // if account wasn't even created
+    ) return;
+
+    const _depositData = await farmProgram.account.depositData.fetch(userDepositPDA);
+    setDepositData(_depositData);
   }
 
   function updateFarmData() {
@@ -64,12 +69,23 @@ const Farm: React.FC<Props> = () => {
 
   useEffect(() => {
     updateFarmData();
+    farmProgram.account.depositData.all([
+      {
+        memcmp: {
+          offset: 8,
+          bytes: farmPDA.toBase58(),
+        },
+      },
+    ])
+      .then(depositData => {
+        console.log(depositData);
+      });
   }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (depositData?.staked.isZero()) setEarnedRewards(0);
       if (!farmData || !depositData) return;
+      if (depositData?.staked.isZero()) setEarnedRewards(0);
       setEarnedRewards(calculateEarnedRewards(
         farmData,
         depositData
@@ -79,17 +95,17 @@ const Farm: React.FC<Props> = () => {
     return () => {
       clearInterval(timer)
     }
-  }, [farmData, depositData]);
+  }, [farmData, depositData, wallet]);
 
 
   useEffect(() => {
     if (!farmData) return;
     updateStakeBalance();
-    updateDeposit();
-  }, [farmData]);
+    updateDepositData();
+  }, [farmData, wallet]);
 
   async function updateStakeBalance() {
-    if (!farmData || !wallet) return;
+    if (!farmData || !wallet || !wallet.publicKey) return;
 
     const account = getAssociatedTokenAddressSync(
       farmData.stakeToken,
@@ -223,6 +239,7 @@ const Farm: React.FC<Props> = () => {
               onChange={e => setStakeAmount(Number(e.target.value))}
             />
             <button
+              disabled={earnedRewards === 0}
               onClick={() => withdraw(0)}
             >Claim rewards</button>
           </div>

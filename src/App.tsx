@@ -18,10 +18,10 @@ function App() {
           Testing Solana Anchor smart contracts. <WalletMultiButton />
         </h1>
         <div className='programContainer'>
-          {/* <SendSol />
+          <SendSol />
           <SimpleCounter />
           <CounterSetter />
-          <TokenSPL /> */}
+          <TokenSPL />
           <Farm />
         </div>
       </AppStyled>
