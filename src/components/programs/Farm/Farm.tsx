@@ -17,13 +17,14 @@ import {
   executeWithdrawal,
   getUserDepositPDA
 } from "./farmHelpers";
+import ToolTip from "../../Tooltip/ToolTip";
 
 window.Buffer = buffer.Buffer;
 type Props = {};
 
 const tokenMinterExecutableAddress = "H8ULdnCzWHR2mj8wkkbZNMHTXwBdwwFqpif5t1tpygT5";
-const farmExecutableAddress = "FcVrY6gNjH1tMp1h9QtzWYQKDJGtz5h2nZUkG4vqHBTy";
-const farmPdaAddress = "9Yuv9De9qUtsEnFEyogdjFKpCCUQ31fNRSfNjgSZvhou";
+const farmExecutableAddress = "G6mWbcAu37TsE1eFd9vuRDCyDxPcsceb2Ej646v6hFWz";
+const farmPdaAddress = "9GFMU28vjLDP5E7eCsKmCf1B3ah5e6DENk7pFTmK7Q7F";
 const minterPdaAddress = "A5kTzRGSAXCAksZCzZL59jkFV1HtCYUoG5tWwjExP98G";
 const tokenMinterProgramID = new PublicKey(tokenMinterExecutableAddress);
 const farmExecutableProgramID = new PublicKey(farmExecutableAddress);
@@ -36,6 +37,7 @@ const Farm: React.FC<Props> = () => {
 
   const [farmData, setFarmData] = useState<FarmDataType>();
   const [depositData, setDepositData] = useState<DepositDataType>();
+  const [depositsList, setDepositsList] = useState<DepositDataType[]>([]);
   const [stakeAmount, setStakeAmount] = useState<undefined | number>();
   const [earnedRewards, setEarnedRewards] = useState(0);
   const [stakeTokenBalance, setStakeTokenBalance] = useState(0);
@@ -63,23 +65,27 @@ const Farm: React.FC<Props> = () => {
   }
 
   function updateFarmData() {
+    console.log("updateFarmData");
+
     farmProgram.account.farmData.fetch(farmPDA)
       .then(_farmData => setFarmData(_farmData));
+    // fetch all deposits
+    farmProgram.account.depositData.all([
+      {
+        memcmp: {
+          offset: 8 + 1 + 32,
+          bytes: farmPDA.toBase58(),  // filter deposits of out farm
+        },
+      },
+    ]).then(depositsData => {
+      setDepositsList(
+        depositsData.map(d => d.account).sort((a, b) => Number(b.staked.sub(a.staked)))
+      );
+    });
   }
 
   useEffect(() => {
     updateFarmData();
-    farmProgram.account.depositData.all([
-      {
-        memcmp: {
-          offset: 8,
-          bytes: farmPDA.toBase58(),
-        },
-      },
-    ])
-      .then(depositData => {
-        console.log(depositData);
-      });
   }, []);
 
   useEffect(() => {
@@ -90,7 +96,7 @@ const Farm: React.FC<Props> = () => {
         farmData,
         depositData
       ));
-    }, 500);
+    }, 2000);
 
     return () => {
       clearInterval(timer)
@@ -245,7 +251,20 @@ const Farm: React.FC<Props> = () => {
           </div>
         </div>
       </div>
-    </ProgramWrapper>
+      <div>
+        <div className="text-info">All farm deposits <ToolTip
+          text="Solana allows fetching accounts that belong to specific program"
+        /></div>
+        {depositsList.map(depositData => (
+          <div className="horizontal-container" style={{ flexWrap: 'wrap' }}>
+            <div>Owner: {accountLink(depositData.owner)}</div>
+            <div>Staked: <span className="text-value">
+              {Number(depositData.staked.toString()) / 1e9}
+            </span></div>
+          </div>
+        ))}
+      </div>
+    </ProgramWrapper >
   );
 }
 
