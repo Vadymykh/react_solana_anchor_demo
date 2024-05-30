@@ -1,12 +1,17 @@
-https://github.com/solana-labs/wallet-adapter/blob/master/FAQ.md
-https://github.com/solana-labs/wallet-adapter/blob/master/APP.md
+# Solana smart contracts Front End interaction
+This repository was created for educational purposes to help front-end developers who are already familiar with React and EVM-compatible blockchain interactions learn and understand Solana blockchain interactions.
 
-https://github.com/solana-developers/create-solana-dapp
+- This is NOT an example of a production-ready project.
+- This is a demonstration of wallet integration and use of the Anchor/Solana libraries.
 
-https://github.com/solana-labs/wallet-adapter/blob/master/packages/starter/react-ui-starter/src/App.tsx
+## USEFUL LINKS
+- https://github.com/solana-labs/wallet-adapter/blob/master/FAQ.md
+- https://github.com/solana-labs/wallet-adapter/blob/master/APP.md
+- https://github.com/solana-developers/create-solana-dapp
+- https://github.com/solana-labs/wallet-adapter/blob/master/packages/starter/react-ui-starter/src/App.tsx
 
 
-## ERRORS
+## ERRORS HANDLING
 
 ### Polyfill error
 
