@@ -1,4 +1,4 @@
-# Solana smart contracts Front End interaction
+# REACT + SOLANA/ANCHOR DEMO
 This repository was created for educational purposes to help front-end developers who are already familiar with React and EVM-compatible blockchain interactions learn and understand Solana blockchain interactions.
 
 - This is NOT an example of a production-ready project.
