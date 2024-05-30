@@ -189,8 +189,7 @@ const TokenSPL = () => {
       <div className="horizontal-container">
         <button onClick={deploy}>
           Deploy new token
-          <ToolTip text="Creates new Mint account, which stores `
-          mintAuthority`, `freezeAuthority`, `decimals`." />
+          <ToolTip text="Creates new Mint account, which stores `mintAuthority`, `freezeAuthority`, `decimals`." />
         </button>
         <button disabled={!mint} onClick={mintTokens}>Mint tokens</button>
         <input

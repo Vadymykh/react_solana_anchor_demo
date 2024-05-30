@@ -27,7 +27,6 @@ import {
   Transaction,
   PublicKey,
   Commitment,
-  ConfirmOptions,
   TransactionInstruction
 } from "@solana/web3.js";
 import { WalletNotConnectedError } from '@solana/wallet-adapter-base';

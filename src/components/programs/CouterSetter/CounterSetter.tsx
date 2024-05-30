@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ProgramWrapper from "../../ProgramWrapper/ProgramWrapper";
 import { IDL as CounterIDL, SimpleCounter as SimpleCounterType } from "./simple_counter_idl";
 import { IDL as SetterIDL, CounterSetter as CounterSetterType } from "./counter_setter.idl";

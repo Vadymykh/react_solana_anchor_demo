@@ -6,12 +6,9 @@ import { WalletNotConnectedError } from "@solana/wallet-adapter-base";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { accountLink } from "../../../solana/helpers";
 
-
 window.Buffer = buffer.Buffer;
-type Props = {};
 
-
-const TokenSPL: React.FC<Props> = () => {
+const TokenSPL: React.FC = () => {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [receiver, setReceiver] = useState("");

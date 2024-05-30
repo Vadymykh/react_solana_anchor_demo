@@ -59,7 +59,6 @@ export const AppStyled = styled.div`
     font-family: 'Roboto', sans-serif;
     color: #333;
     font-size: 16px;  
-    font-family: sans-serif;
     font-weight: 600;
     padding: 15px;
     border-radius: 0.2rem;

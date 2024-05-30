@@ -1,10 +1,9 @@
-import { PublicKey } from '@solana/web3.js'
 import { FC, useEffect } from 'react'
 import { accountLink, toDecimalsAmount } from '../../../solana/helpers'
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useConnection } from '@solana/wallet-adapter-react';
 import ToolTip from '../../Tooltip/ToolTip';
-import { Account, Mint } from '@solana/spl-token';
-import { TokenAccountData, executeBurn, getLargestParsedAccounts } from '../../../scripts/tokenSplBrowserHelpers';
+import { Mint } from '@solana/spl-token';
+import { TokenAccountData, getLargestParsedAccounts } from '../../../scripts/tokenSplBrowserHelpers';
 import { LargestAccountsStyled } from './LargestAccounts.styled';
 
 interface LargestAccountsProps {
@@ -21,8 +20,6 @@ const LargestAccounts: FC<LargestAccountsProps> = ({
   setTokensReceiverAddress,
 }) => {
   const { connection } = useConnection();
-  const wallet = useWallet();
-  // const [parsedAccounts, setParsedAccounts] = useState<>([]);
 
   // update largest accounts
   useEffect(() => {
